@@ -19,6 +19,7 @@ type Thing = {
 
 type Model3 = {
     Things: Map<ThingId,Thing>
+    MouseIsTick3: bool
 }
 
 type RenderThingProps = Thing
@@ -26,10 +27,12 @@ type RenderThingProps = Thing
 let tick3Init() : Model3 = 
     {
         Things = Map.empty
+        MouseIsTick3 = true  // switches between normal Issie operation, and mouse messages processed by Tick3 code
     }
 
-
-let doDrawing x y x1 x2 =
+     
+let doDrawing x y x1 x2 : ReactElement list=
+    // see DrawHelpers for some examples of how to draw.
     failwithf "Not Impelmented"
 
 
@@ -38,14 +41,19 @@ let renderThing  =
             fun (thingProps : RenderThingProps) ->
                 g ([ Style [ Transform(sprintf "translate(%fpx, %fpx)" thingProps.X thingProps.Y) ] ]) (doDrawing thingProps.X thingProps.Y thingProps.X1 thingProps.X2)
                 
-            , "Symbol"
+            , "Thing"
             , equalsButFunctions
             )
+
 let renderTick3 (model: Model3) display = 
     model.Things
-    |> Map.toList
-    |> List.map (fun (_,thing) -> renderThing thing)
+    |> Helpers.mapValues
+    |> Seq.toList
+    |> List.map renderThing
     |> ofList
 
-
+/// called with every mouse operation if model.MouseIsTick3 = true
+/// returns the desired new Tick3 part of model based on teh mouse event
+let updateTick3 (model: Model3) (mMsg: MouseT) =
+    model
 

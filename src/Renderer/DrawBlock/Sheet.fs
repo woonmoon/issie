@@ -915,12 +915,15 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
         {model with Toggle = false}, Cmd.none
 
     | MouseMsg mMsg -> // Mouse Update Functions can be found above, update function got very messy otherwise
-        //printf "%A" mMsg
-        match mMsg.Op with
-        | Down -> mDownUpdate model mMsg
-        | Drag -> mDragUpdate model mMsg
-        | Up -> mUpUpdate model mMsg
-        | Move -> mMoveUpdate model mMsg
+        let tick3Model = model.Wire.Symbol.Tick3
+        if tick3Model.MouseIsTick3 then
+            {model with Wire = {model.Wire with Symbol = { model.Wire.Symbol with Tick3 = Tick3.updateTick3 tick3Model mMsg }}}, Cmd.none
+        else
+            match mMsg.Op with
+            | Down -> mDownUpdate model mMsg
+            | Drag -> mDragUpdate model mMsg
+            | Up -> mUpUpdate model mMsg
+            | Move -> mMoveUpdate model mMsg        
     | UpdateBoundingBoxes -> { model with BoundingBoxes = Symbol.getBoundingBoxes model.Wire.Symbol }, Cmd.none
     | UpdateSingleBoundingBox compId ->
         match Map.containsKey compId model.BoundingBoxes with
