@@ -9,6 +9,7 @@ open Elmish
 open DrawHelpers
 open CommonTypes
 open System.Text.RegularExpressions
+open Tick3
 
 
 /// --------- STATIC VARIABLES --------- ///
@@ -30,7 +31,10 @@ type Symbol =
         Moving: bool
     }
 
+
+
 type Model = {
+    Tick3: Model3
     Symbols: Map<ComponentId, Symbol>
     CopiedSymbols: Map<ComponentId, Symbol>
     Ports: Map<string, Port>                            // string since it's for both input and output ports
@@ -447,7 +451,7 @@ let compSymbol (symbol:Symbol) (comp:Component) (colour:string) (showInputPorts:
     |> List.append (createBiColorPolygon points colour olColour opacity strokeWidth)
 
 let init () = 
-    { Symbols = Map.empty; CopiedSymbols = Map.empty; Ports = Map.empty ; InputPortsConnected= Set.empty ; OutputPortsConnected = Map.empty}, Cmd.none
+    { Symbols = Map.empty; CopiedSymbols = Map.empty; Ports = Map.empty ; InputPortsConnected= Set.empty ; OutputPortsConnected = Map.empty; Tick3 = tick3Init()}, Cmd.none
 
 //----------------------------View Function for Symbols----------------------------//
 type private RenderSymbolProps =
@@ -484,6 +488,10 @@ let MapsIntoLists map =
 
 
 let view (model : Model) (dispatch : Msg -> unit) = 
+    let startThings = TimeHelpers.getTimeMs()
+    let thingOutput = 
+        renderTick3 model.Tick3 dispatch
+        |> TimeHelpers.instrumentInterval "ThingsView" startThings
     let start = TimeHelpers.getTimeMs()
     model.Symbols
     |> MapsIntoLists
@@ -496,6 +504,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
             }
     )
     |> ofList
+    |> (fun reactEl -> [thingOutput ; reactEl] |> ofList)
     |> TimeHelpers.instrumentInterval "SymbolView" start
 
 //------------------------GET BOUNDING BOXES FUNCS--------------------------------used by sheet.
