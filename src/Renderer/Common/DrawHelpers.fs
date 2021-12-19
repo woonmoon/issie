@@ -13,12 +13,40 @@ open Fable.React.Props
 //------------------------------Types--------------------------------------//
 //-------------------------------------------------------------------------//
 
-/// position on SVG canvas
+/// Position on SVG canvas
+/// Positions can be added, subtracted, scaled using overloaded +,-, *  operators
+/// currently these custom operators are not used in Issie - they should be!
 type XYPos =
     {
         X : float
         Y : float
     }
+
+    /// allowed tolerance when comparing positions with floating point errors for equality
+    static member epsilon = 0.0000001
+    /// Add postions as vectors (overlaoded operator)
+
+    static member ( + ) (left: XYPos, right: XYPos) =
+        { X = left.X + right.X; Y = left.Y + right.Y }
+
+    /// Subtract positions as vectors (overloaded operator)
+    static member ( - ) (left: XYPos, right: XYPos) =
+        { X = left.X - right.X; Y = left.Y - right.Y }
+
+    /// Scale a position by a number (overloaded operator).
+    static member ( * ) (pos: XYPos, scaleFactor: float) =
+        { X = pos.X*scaleFactor; Y = pos.Y * scaleFactor }
+
+    /// Compare positions as vectors. Comparison is approximate so 
+    /// it will work even with floating point errors. New infix operator.
+    static member ( =~ ) (left: XYPos, right: XYPos) =
+        abs (left.X - right.X) <= XYPos.epsilon && abs (left.Y - right.Y) <= XYPos.epsilon
+
+/// example use of comparison operator: note that F# type inference will not work without at least
+/// one of the two operator arguments having a known XYPos type.
+let private testXYPosComparison a  (b:XYPos) = 
+    a =~ b
+
 
 type BoundingBox = {
     X: float
