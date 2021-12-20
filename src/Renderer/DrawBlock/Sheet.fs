@@ -916,7 +916,7 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
 
     | MouseMsg mMsg -> // Mouse Update Functions can be found above, update function got very messy otherwise
         let tick3Model = model.Wire.Symbol.Tick3
-        if tick3Model.MouseIsTick3 then
+        if Tick3.mouseIsTick3 then
             {model with Wire = {model.Wire with Symbol = { model.Wire.Symbol with Tick3 = Tick3.updateTick3 tick3Model mMsg }}}, Cmd.none
         else
             match mMsg.Op with

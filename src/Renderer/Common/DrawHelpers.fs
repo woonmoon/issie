@@ -80,12 +80,30 @@ type MouseT = {
     Movement: XYPos
     Op: MouseOp}
 
-/// Record to help create SVG lines
-type Line = {
+/// Record to help draw SVG circles
+type Circle = {
+    ///  Radius of the circle
+    R: float  
+    /// color of outline: default => black color
     Stroke: string
+    /// width of outline: default => thin
     StrokeWidth: string
+    /// Fill: 0.0 => transparent, 1.0 => opaque
+    FillOpacity: float // transparent fill
+    /// color of fill: default => black color
+    Fill: string
+}
+
+/// Record tonhelp draw SVG lines
+type Line = {
+    /// color of outline: default => black color
+    Stroke: string
+    /// width of outline: default => thin
+    StrokeWidth: string
+    /// what type of line: default => solid
     StrokeDashArray: string
 }
+
 
 /// Record to help create SVG paths (for wire segment jumps ONLY)
 type Path = {
@@ -98,16 +116,6 @@ type Path = {
 
 /// Record to help create SVG polygons
 type Polygon = {
-    Stroke: string
-    StrokeWidth: string
-    FillOpacity: float
-    Fill: string
-}
-
-/// Record to help create SVG circles
-type Circle = {
-    /// Radius of the circle
-    R: float 
     Stroke: string
     StrokeWidth: string
     FillOpacity: float
