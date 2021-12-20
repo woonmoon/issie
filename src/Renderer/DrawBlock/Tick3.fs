@@ -88,7 +88,7 @@ let tick3Init() : Model3 =
         DraggedThing = ThingId "" // nothing is dragged initially
     }
 
-//------------------------------Code for Dragging The Thing--------------------------------------------------//
+//------------------------------Section A. Code for Dragging The Thing------------------------------------//
 
 (*
 The next section of code returns the required mouse position offset when dragging one side of a rectangle-type
@@ -160,7 +160,7 @@ let dragThing (pos: XYPos) (model: Model3) =
         {model with Things = Map.add tId thing' tMap}
         
     
-//-----------------------Code to display all things in the view function--------------------------//
+//-----------------Section B. Code to display all things in the view function-----------------//
 
 /// sample parameters for drawing circle
 let circParas = {
@@ -214,7 +214,7 @@ let renderTick3 (model: Model3) display =
     |> List.map renderThing
     |> ofList
 
-//--------------------------------Code to determine what was clicked-------------------------//
+//--------------------------------Section C. Code to determine what was clicked-------------------------//
 
 /// is a rectangle side (determined by its two endpoints) clicked
 let clickedSideOpt clickRadius (pos:XYPos) (i,((x1,y1),(x2,y2))) =
@@ -253,7 +253,7 @@ let tryFindClickedThing (clickRadius: float) (pos: XYPos) (m:Model3) : {|ThingId
     Map.tryPick (clickedThingOpt clickRadius pos) m.Things
   
 
-//--------------------------------Update function for Tick3----------------------------------//
+//--------------------------------Section D. Update function for Tick3-------------------------//
 
 /// alter model to start a drag operation
 let startDragging (draggable: {|ThingId: ThingId; ItemSide:int|}) (model: Model3) : Model3 =
