@@ -42,6 +42,10 @@ type XYPos =
     static member ( =~ ) (left: XYPos, right: XYPos) =
         abs (left.X - right.X) <= XYPos.epsilon && abs (left.Y - right.Y) <= XYPos.epsilon
 
+let euclideanDistance (pos1: XYPos) (pos2:XYPos) = 
+    let vec = pos1 - pos2
+    sqrt(vec.X**2 + vec.Y**2)
+
 /// example use of comparison operator: note that F# type inference will not work without at least
 /// one of the two operator arguments having a known XYPos type.
 let private testXYPosComparison a  (b:XYPos) = 

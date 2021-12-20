@@ -3,7 +3,6 @@ open Fable.React
 open Fable.React.Props
 open Elmish
 open DrawHelpers
-open CommonTypes
 open System.Text.RegularExpressions
 // unique Id for Thing objects
 type ThingId = string
@@ -20,6 +19,7 @@ type Thing = {
 }
 
 type Model3 = {
+    ClickRadius: float
     Things: Map<ThingId,Thing>
     MouseIsTick3: bool // true changes Issie functionality so all mouse operations are processed by Tick3 code
     Dragging: bool // is something being currently dragged to resize by the mouse
@@ -43,6 +43,7 @@ let dummyThing = {
 let tick3Init() : Model3 = 
     {
         Things = Map.empty // no things initially
+        ClickRadius = 2. // how near do you have to click an object to initiate a drag
         Dragging = false
         DraggedThing = dummyThing // nothing is dragged initially
         MouseIsTick3 = true  // switches between normal Issie operation, and mouse messages processed by Tick3 code
@@ -96,8 +97,11 @@ let doSubtraction (thing: Thing) side x y =
     | 0 | 2 -> thing.X1 + d*2., thing.X2
     | 1 | 3 -> thing.X1, thing.X2 + d*2.
 
+/// Alter size of currently dragged thing to make its edge (or its clicked side) follow pos
+/// For circles the circle should go through pos
+/// For rectangles pos shoudl be colinear with the dragged side (common coordinate the same)
 let dragThing (pos: XYPos) (model: Model3) =
-    failwithf "Noyt implemented"
+    failwithf "Not implemented"
     
 //-----------------------Code to display all things in the view function--------------------------//
     
@@ -129,28 +133,58 @@ let renderTick3 (model: Model3) display =
 
 //--------------------------------Code to determine what was clicked-------------------------//
 
-let insideBoundingBox (pos:XYPos) (thingKey: ThingId) (thing: Thing):
-    {|ItemId: ThingId; ItemSide:int|} option =
-    failwithf "Not implemented"
+/// is a rectangle side (determined by its two endpoints) clicked
+let clickedSideOpt clickRadius (pos:XYPos) (i,((x1,y1),(x2,y2))) =
+    if abs (x1 - x2) < abs (y1 - y2) then
+        // it is a vertical side
+        if abs (pos.Y - y1) < clickRadius && x1 > pos.X && pos.X > x2 then
+            Some i
+        else
+            None
+    else 
+        if abs (pos.X - x1) < clickRadius && y1 > pos.Y && pos.Y > y2 then
+            Some i
+        else
+            None
+            
 
-let findClickedItem (pos: XYPos) (m:Model3) : {|ItemId: string; ItemSide:int|} option =
-    Map.tryPick (insideBoundingBox pos) m.Things
+
+
+/// return None or the thing (and possibly side, for rectangles) clicked
+let clickedThingOpt (clickRadius: float) (pos:XYPos) (thingId: ThingId) (thing: Thing):
+        {|ThingId: ThingId; ItemSide:int|} option =
+    if thing.IsRectangle then
+        [0..3]
+        |> List.map (fun side -> side, getCoordinates side thing.X thing.Y thing.X1 thing.X2)
+        |> List.tryPick (clickedSideOpt clickRadius pos)
+        |> Option.map (fun side -> {|ThingId = thingId; ItemSide = side|})
+    elif abs (euclideanDistance pos {X=thing.X;Y=thing.Y} - thing.X1 / 2.0) < clickRadius then
+        Some {|ThingId = thingId; ItemSide = 0|}
+    else 
+        None
+    
+/// return None or the thing (and possibly side, for rectangle things) clicked
+let tryFindClickedThing (clickRadius: float) (pos: XYPos) (m:Model3) : {|ThingId: ThingId; ItemSide:int|} option =
+    Map.tryPick (clickedThingOpt clickRadius pos) m.Things
   
-let startDragging (draggable: {|ItemId: string; ItemSide:int|}) (model: Model3) : Model3 =
-    failwithf "not implemented"
 
-let stopDragging (model: Model3) : Model3 =
-    failwithf "Not Implemented"
 //--------------------------------Update function for Tick3----------------------------------//
 
+/// alter model to start a drag operation
+let startDragging (draggable: {|ThingId: ThingId; ItemSide:int|}) (model: Model3) : Model3 =
+    failwithf "not implemented"
 
+/// alter model to stop a drag operation
+let stopDragging (model: Model3) : Model3 =
+    failwithf "Not Implemented"
 
-/// called with every mouse operation if model.MouseIsTick3 = true
-/// returns the desired new Tick3 part of model based on the mouse event
+/// Update the model after given Mouse event (see type MouseT).
+/// Called with every mouse operation if model.MouseIsTick3 = true
+/// Returns the desired new Tick3 part of model based on the mouse event
 let updateTick3 (model: Model3) (mMsg: MouseT): Model3 =
     match mMsg.Op with
     | Down ->
-        findClickedItem mMsg.Pos model 
+        tryFindClickedThing model.ClickRadius mMsg.Pos model 
         |> Option.map (fun thingToDrag -> startDragging thingToDrag model)
         |> Option.defaultValue model
     | Up -> stopDragging model
