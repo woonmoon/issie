@@ -85,7 +85,7 @@ let tick3Init() : Model3 =
         Things = initThings |> List.map (fun tg -> tg.Id,tg) |> Map.ofList
         ClickRadius = 10. // how near do you have to click an object to initiate a drag
         Dragging = false
-        DraggedThing = ThingId "" // nothing is dragged initially
+        DraggedThing = "" // nothing is dragged initially
     }
 
 //------------------------------Section A. Code for Dragging The Thing------------------------------------//
@@ -193,7 +193,9 @@ let lineParas: Line = {
 /// the result must be returned as a list of SVG elements
 let doDrawing r x1 x2 : ReactElement list=
     // see DrawHelpers for some examples of how to draw.
-    failwithf "Not implemented"
+    // use empty lits here drawing nothing to allow app to run initially
+    // more correctlky should be failwithf "not implemented"
+    [] // failwithf "Not implemented"
         
 
 /// display as a single SVG element the Thing defined by ThingProps

@@ -18,6 +18,7 @@
     <Compile Include="Common\DrawHelpers.fs" />
     <Compile Include="Common\Helpers.fs" />
     <Compile Include="Common\TimeHelpers.fs" />
+    <Compile Include="Common\TimeTests.fs" />
     <Compile Include="Common\WidthInferer.fs" />
     <!-- simulator -->
     <Compile Include="Simulator\SimulatorTypes.fs" />

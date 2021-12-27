@@ -128,6 +128,8 @@ let fileMenu (dispatch) =
         makeCondItem (JSHelpers.debugLevel <> 0 && not isMac) "Run performance check" None (fun _ -> 
             testMaps()            
             displayPerformance 100 4000000)
+        makeCondItem (JSHelpers.debugLevel <> 0 && not isMac) "Run collection time check" None (fun _ -> 
+            TimeTests.printInfo())
      ]
 
 
