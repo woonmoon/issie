@@ -21,11 +21,15 @@ let getTimeOfInMs (limitMs: float) (thunk:Unit -> Unit) =
 /// Results all roughly the same.
 let testMapRead runTime =
 
-    let viaArrays m =
+    let viaArrays (m:Map<'a,float>) =
         m |> Map.toArray |> Array.map snd |> Array.sum |> ignore
-    let viaValues m =
-        m |> Helpers.mapValues |> Seq.sum |> ignore
-    let viaArraysSumBy m =
+    let viaLists (m:Map<'a,float>) =
+        m |> Map.toList |> List.map snd |> List.sum |> ignore
+    let viaListsSumBy (m:Map<'a,float>) =
+         m |> Map.toList |> List.sumBy snd |> ignore
+    let viaValues (m:Map<'a,float>) =
+        m |> Map.values |> Seq.sum |> ignore
+    let viaArraysSumBy (m:Map<'a,float>) =
         m |> Map.toArray |> Array.sumBy snd |> ignore
 
     let viaRandomMapLookups (m:Map<'a,float>) =
@@ -48,9 +52,11 @@ let testMapRead runTime =
         $"{timeIt 100}     {timeIt 1000}      {timeIt 10000}"
 
     printfn "\nTesting time in ns to read the values of a Map of given size (per value)"
-    printfn $"Size in items:   100       1000       10000"
+    printfn $"Siz  in items:   100       1000       10000"
     printfn $"viaArrays:       {test viaArrays}"
     printfn $"viaArraysSumBy:  {test viaArraysSumBy}"
+    printfn $"viaLists:        {test viaLists}"
+    printfn $"viaListsSumBy:   {test viaListsSumBy}"
     printfn $"viaValues:       {test viaValues}"
     printfn $"viaRamdomLookup: {test viaRandomMapLookups}"
 
