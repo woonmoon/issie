@@ -28,6 +28,13 @@ let testMapRead runTime =
     let viaArraysSumBy m =
         m |> Map.toArray |> Array.sumBy snd |> ignore
 
+    let viaRandomMapLookups (m:Map<'a,float>) =
+        m 
+        |> Map.toArray 
+        |> Array.map fst
+        |> Array.sumBy (fun k -> m[k])
+        |> ignore
+
     let test f =
         let makeMap n = 
             [1.0..(float n)]
@@ -45,6 +52,8 @@ let testMapRead runTime =
     printfn $"viaArrays:       {test viaArrays}"
     printfn $"viaArraysSumBy:  {test viaArraysSumBy}"
     printfn $"viaValues:       {test viaValues}"
+    printfn $"viaRamdomLookup: {test viaRandomMapLookups}"
+
 
 /// test diferent ways of filtering a long generated collection
 /// the filtered output is very small, so efficiency depends on how
