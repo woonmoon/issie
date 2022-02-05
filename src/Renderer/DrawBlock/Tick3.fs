@@ -192,10 +192,14 @@ let lineParas: Line = {
 /// x1 is diameter - not radius - of circle
 /// the result must be returned as a list of SVG elements
 let doDrawing r x1 x2 : ReactElement list=
+    match r with
+    | circle when r=true -> [(makeCircle 0.0 0.0 {R=x1; Stroke = "Black"; StrokeWidth = "1.0px"; FillOpacity=0.0; Fill=""})]
+    | rectangle -> failwithf "fail"
+    // makePolygon
     // see DrawHelpers for some examples of how to draw.
     // use empty lits here drawing nothing to allow app to run initially
     // more correctlky should be failwithf "not implemented"
-    [] // failwithf "Not implemented"
+    // [] // failwithf "Not implemented"
         
 
 /// display as a single SVG element the Thing defined by ThingProps
