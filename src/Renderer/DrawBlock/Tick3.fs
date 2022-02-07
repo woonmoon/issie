@@ -128,8 +128,8 @@ let sideHasPositiveCommonCoordinateOffset side =
 let getCoordinates s c1 c2 x1 x2 =
     match s with
     | Right -> (c1 + x1/2.0, c2 + x2/2.0),(c1 + x1/2.0, c2 - x2/2.0)
-    | Bottom -> (c1 - x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 - x2/2.0)
-    | Left -> (c1 + x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 + x2/2.0)
+    | Left -> (c1 - x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 - x2/2.0)
+    | Bottom -> (c1 + x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 + x2/2.0)
     | Top -> (c1 + x1/2.0, c2 - x2/2.0), (c1 - x1/2.0, c2 - x2/2.0)  
 
 
@@ -155,6 +155,7 @@ let doSubtraction (rectangle: Thing) side x y =
 
     let x1, x2 = getDimensions rectangle
     let cc1,cc2 = getCoordinates side rectangle.X rectangle.Y x1 x2
+    printfn "Sussy Pt1 %f, %f" (fst cc1) (snd cc1)
     let d = subtractFromX1OrY1 (side = Top || side = Bottom) x y (fst cc1) (snd cc1) 
     let sign = if (side = Right || side = Bottom) then 1. else -1.
     let offset = sign * d * 2.0
@@ -174,7 +175,7 @@ let dragThing (pos: XYPos) (model: Model3) =
     match thing.Shape with
     | Rectangle r ->
         let side = r.Side
-        let x1,x2 = doSubtraction thing side thing.X thing.Y
+        let x1,x2 = doSubtraction thing side pos.X pos.Y
         let r' = {r with X1 = r.X1 + x1; X2 = r.X2 + x2}
         let thing' = {thing with Shape= Rectangle r'}
         {model with Things = Map.add tId thing' tMap}
