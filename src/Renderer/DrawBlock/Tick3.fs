@@ -5,21 +5,50 @@ open Elmish
 open DrawHelpers
 open System.Text.RegularExpressions
 
-/// unique Id for Thing objects
+/// x, y should be of type xyPos rather than two separate fields
+/// Use different types for circle and rectangle and do it as a type check.
+/// Put circle and rectangle into shape type so change Map Thing ID as Thinga s discriminated union of ricle or rectangle.
+/// Function (line 103 SideHasPositive...)
+/// Redefine side as separate side so rewrite
+/// Get coordinates c1 c3 should be a struct of xypos 
+/// Get rid of _ in match statements can go.
+/// GetCoordinates should never return 0 0 like why
+/// Don't pass in x1 and y1 because you only need one of them.
+/// Comments for subtractFrom... are double // not ///
+/// Subtraction x, y instead of xypos.
+/// Unused value cc2 (use _ instead of cc2)
+/// In DragThing why is he using a backwards pipeline instead of brackets?
+/// DoDrawign needs to match statement on match on type
+/// LetRenderThing can probably be line-broke
+/// ClickSideOpt and ClickedThingOpt don't need to end them in "-Opt" suffix
+/// ClickedSideOpt should take in a XYPos (it has an XYPos at the start and not an XYPos at the end)
+/// ClickedThingOpt two vars inside else-if are unused.
+
+/// unique Id for Thing objects, call the UUID js.Helpers uuid 
 type ThingId = string
 
 /// true for Tick3 work, false for normal Issie
 let mouseIsTick3 = true // true changes Issie functionality so all mouse operations are processed by Tick3 code
 
-
+type Side = Right | Bottom | Left | Top
+type Circle = {
+    /// unique ID
+    Id: ThingId
+    /// centre
+    X: float
+    /// centre 
+    Y: float
+    /// radius
+    R: float
+}
 // Thing represents a cicle or a rectangle on an SVG canvas
 type Thing = { 
     /// unique ID
     Id: ThingId
-    /// true if rectangle, false if circle
+/// true if rectangle, false if circle
     IsRectangle: bool
     /// used only when dragging: 0,1,2,3 indicates side dragged
-    Side: int // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
+    Side: Side // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
     /// centre
     X: float // x coordinate of centre of Thing
     /// centre
@@ -45,8 +74,8 @@ type RenderThingProps = Thing
 
 let dummyThing = {
     Id = "dummy"
-    IsRectangle = false  // true if thing represents a rectangle
-    Side = 0 // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
+    IsRectangle = false
+    Side = Right // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
     X = 0. // x coordinate of centre of Thing
     Y = 0. // y coordinate of centre of Thing
     X1 = 0. // width of rectangle or diameter of circle
@@ -61,7 +90,7 @@ let initThings =
             {
                 Id = "1"
                 IsRectangle = true  // true if thing represents a rectangle
-                Side = 0 // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
+                Side = Right// which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
                 X = 200. // x coordinate of centre of Thing
                 Y = 500. // y coordinate of centre of Thing
                 X1 = 100. // width of rectangle or diameter of circle
@@ -70,12 +99,12 @@ let initThings =
             {
                 Id = "2"
                 IsRectangle = false  // true if thing represents a rectangle
-                Side = 0 // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
+                Side = Right // which side (of a rectangle) is currently being dragged 0: right, 1: bottom, 2: left, 3: top
                 X = 500. // x coordinate of centre of Thing
                 Y = 200. // y coordinate of centre of Thing
                 X1 = 100. // width of rectangle or diameter of circle
                 X2 = 0. // height of rectangle
-            }   
+            }    
         ]
 
 /// initialise the Model
@@ -101,20 +130,18 @@ is quite easy for novice F# programmers to write this.
 /// returns true if the coordinate (X or Y) in common between the two side endpoints is positive
 /// relative to the rectangle position
 let sideHasPositiveCommonCoordinateOffset side =
-    side = 0 || side = 1
+    (side = Right || side = Bottom)
 
 /// Return the two side endpoint sets of coordinates
 /// for side s of rectangle center (c1,c2), width x1, height x2
 /// The most positive end must be first
 let getCoordinates s c1 c2 x1 x2 =
     match s with
-    | 0 -> (c1 + x1/2.0, c2 + x2/2.0),(c1 + x1/2.0, c2 - x2/2.0)
-    | 2 -> (c1 - x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 - x2/2.0)
-    | 1 -> (c1 + x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 + x2/2.0)
-    | 3 -> (c1 + x1/2.0, c2 - x2/2.0), (c1 - x1/2.0, c2 - x2/2.0)
-    | _ -> (0. , 0.), (0. , 0.) // Return a default zero value for bad s to avoid exception
-  
-    
+    | Right -> (c1 + x1/2.0, c2 + x2/2.0),(c1 + x1/2.0, c2 - x2/2.0)
+    | Bottom -> (c1 - x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 - x2/2.0)
+    | Left -> (c1 + x1/2.0, c2 + x2/2.0),(c1 - x1/2.0, c2 + x2/2.0)
+    | Top -> (c1 + x1/2.0, c2 - x2/2.0), (c1 - x1/2.0, c2 - x2/2.0)  
+
 
 // get offset between side of rectangle and current mouse position
 // direction = true => horizontal side
@@ -130,14 +157,14 @@ let subtractFromX1OrY1 direction x y x1 y1  =
 // output is tuple in form X1,X2
 // side = side that is being dragged by mouse
 // thing = rectangle
-let doSubtraction (thing: Thing) side x y =
-    let cc1,cc2 = getCoordinates side thing.X thing.Y thing.X1 thing.X2
-    let d = subtractFromX1OrY1 (side % 2 = 1) x y (fst cc1) (snd cc1) 
-    let sign = if sideHasPositiveCommonCoordinateOffset side then 1. else -1.
+let doSubtraction (rectangle: Thing) side x y =
+    let cc1,cc2 = getCoordinates side rectangle.X rectangle.Y rectangle.X1 rectangle.X2
+    let d = subtractFromX1OrY1 (side = Top || side = Bottom) x y (fst cc1) (snd cc1) 
+    let sign = if (side = Right || side = Bottom) then 1. else -1.
     let offset = sign * d * 2.0
-    match side % 2 with
-    | 0 | 2 -> offset, 0.
-    | 1 | 3 -> 0., offset
+    match side with
+    | Right | Left -> offset, 0. // Even Sides - Right Left
+    | Top | Bottom -> 0., offset // Odd sides - Top Bottom
 
 /// Alter size of currently dragged thing to make its edge (or its clicked side) follow pos
 /// For circles the circle should go through pos
@@ -159,6 +186,7 @@ let dragThing (pos: XYPos) (model: Model3) =
         let thing' = {thing with X1 = r' * 2.0}
         {model with Things = Map.add tId thing' tMap}
         
+
     
 //-----------------Section B. Code to display all things in the view function-----------------//
 
@@ -191,10 +219,14 @@ let lineParas: Line = {
 /// x1,x2 fields X1, X2 from thing to be drawn of same name
 /// x1 is diameter - not radius - of circle
 /// the result must be returned as a list of SVG elements
+
+let rectCoods w h : string=
+    (sprintf "%f,%f %f,%f %f, %f %f,%f" (-w/2.0) (h/2.0) (w/2.0) (h/2.0) (w/2.0) (-h/2.0) (-w/2.0) (-h/2.0))
+
 let doDrawing r x1 x2 : ReactElement list=
     match r with
-    | circle when r=true -> [(makeCircle 0.0 0.0 {R=x1; Stroke = "Black"; StrokeWidth = "1.0px"; FillOpacity=0.0; Fill=""})]
-    | rectangle -> failwithf "fail"
+    | circle when r=true -> [(makeCircle 0.0 0.0 {R=(x1/2.0); Stroke = "Blue"; StrokeWidth = "1x"; FillOpacity=0.0; Fill=""})]
+    | rectangle -> [(makePolygon (rectCoods x1 x2) {Stroke="Red"; StrokeWidth="1px"; FillOpacity=0.0; Fill=""})]
     // makePolygon
     // see DrawHelpers for some examples of how to draw.
     // use empty lits here drawing nothing to allow app to run initially
@@ -241,28 +273,28 @@ let clickedSideOpt clickRadius (pos:XYPos) (i,((x1,y1),(x2,y2))) =
 
 /// return None or the thing (and possibly side, for rectangles) clicked
 let clickedThingOpt (clickRadius: float) (pos:XYPos) (thingId: ThingId) (thing: Thing):
-        {|ThingId: ThingId; ItemSide:int|} option =
+        {|ThingId: ThingId; ItemSide:Side|} option =
     if thing.IsRectangle then
-        [0..3]
+        [Right; Bottom; Left; Top]
         |> List.map (fun side -> side, getCoordinates side thing.X thing.Y thing.X1 thing.X2)
         |> List.tryPick (clickedSideOpt clickRadius pos)
         |> Option.map (fun side -> {|ThingId = thingId; ItemSide = side|})
     elif abs (euclideanDistance pos {X=thing.X;Y=thing.Y} - thing.X1 / 2.0) < 5 then
         let ed = euclideanDistance pos {X=thing.X;Y=thing.Y}
         let rad = thing.X1 / 2.0
-        Some {|ThingId = thingId; ItemSide = 0|}
+        Some {|ThingId = thingId; ItemSide = Right|}
     else 
         None
     
 /// return None or the thing (and possibly side, for rectangle things) clicked
-let tryFindClickedThing (clickRadius: float) (pos: XYPos) (m:Model3) : {|ThingId: ThingId; ItemSide:int|} option =
+let tryFindClickedThing (clickRadius: float) (pos: XYPos) (m:Model3) : {|ThingId: ThingId; ItemSide:Side|} option =
     Map.tryPick (clickedThingOpt clickRadius pos) m.Things
   
 
 //--------------------------------Section D. Update function for Tick3-------------------------//
 
 /// alter model to start a drag operation
-let startDragging (draggable: {|ThingId: ThingId; ItemSide:int|}) (model: Model3) : Model3 =
+let startDragging (draggable: {|ThingId: ThingId; ItemSide:Side|}) (model: Model3) : Model3 =
     if not <| Map.containsKey draggable.ThingId model.Things then  
         failwith $"Unexpected ThingId '{draggable.ThingId}' found in draggable by startDragging"
     {model with 
